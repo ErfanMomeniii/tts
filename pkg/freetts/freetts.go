@@ -1,14 +1,18 @@
 package freetts
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/hajimehoshi/go-mp3"
+	"github.com/hajimehoshi/oto/v2"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const Url string = "https://freetts.com"
@@ -17,10 +21,10 @@ type FreeTts struct {
 	IsMale bool
 }
 
-func (f *FreeTts) TextToSpeak(text string, language string) (error, []byte) {
-	speaker, err := selectSpeaker(language, f.IsMale)
+func textToSpeak(text string, language string, isMale bool) ([]byte, error) {
+	speaker, err := selectSpeaker(language, isMale)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	u := fmt.Sprintf("%s/Home/PlayAudio?Language=%s&Voice=%s&TextMessage=%s&id=%s&type=1",
@@ -28,7 +32,7 @@ func (f *FreeTts) TextToSpeak(text string, language string) (error, []byte) {
 	fmt.Println(u)
 	resp, err := http.Get(u)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	defer func() {
@@ -43,18 +47,18 @@ func (f *FreeTts) TextToSpeak(text string, language string) (error, []byte) {
 
 	responseBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	err = json.Unmarshal(responseBytes, &response)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	u2 := fmt.Sprintf("%s/audio/%s", Url, response.Id)
 	result, err := http.Get(u2)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	defer func() {
 		_ = result.Body.Close()
@@ -62,13 +66,50 @@ func (f *FreeTts) TextToSpeak(text string, language string) (error, []byte) {
 
 	body, err := ioutil.ReadAll(result.Body)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
-	return err, body
+	return body, err
+}
+
+func (f *FreeTts) Play(text string, language string) error {
+	result, err := textToSpeak(text, language, f.IsMale)
+	if err != nil {
+		return err
+	}
+
+	bytesReader := bytes.NewReader(result)
+	decodedMp3, err := mp3.NewDecoder(bytesReader)
+	if err != nil {
+		return err
+	}
+
+	samplingRate := 44100
+	numOfChannels := 2
+	audioBitDepth := 2
+
+	otoCtx, readyChan, err := oto.NewContext(samplingRate, numOfChannels, audioBitDepth)
+	if err != nil {
+		return err
+	}
+
+	<-readyChan
+
+	player := otoCtx.NewPlayer(decodedMp3)
+	player.Play()
+
+	for player.IsPlaying() {
+		time.Sleep(time.Millisecond)
+	}
+
+	err = player.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func selectSpeaker(language string, isMale bool) (string, error) {
-
 	switch language {
 	case "en-US":
 		if isMale {
