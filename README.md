@@ -60,7 +60,7 @@ func main() {
 
 ```
 
-And if you want to save this voice you can use **SaveToFile** method as follows:
+And if you want to save this voice you can use **SaveToFile** function as follows:
 
 ```go
 package main
