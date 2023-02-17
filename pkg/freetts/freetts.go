@@ -109,19 +109,19 @@ func (f *FreeTts) Play(text string, language string) error {
 	return nil
 }
 
-func (f *FreeTts) Save(text string, language string, path string) error {
+func (f *FreeTts) Save(text string, language string, path string) (string, error) {
 	result, id, err := textToSpeak(text, language, f.IsMale)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	_ = os.Mkdir(path, 0777)
 
 	if err = os.WriteFile(path+"/"+id, result, 0777); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return id, nil
 }
 
 func selectSpeaker(language string, isMale bool) (string, error) {

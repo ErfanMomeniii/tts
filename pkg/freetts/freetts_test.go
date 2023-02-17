@@ -18,15 +18,15 @@ func TestSave(t *testing.T) {
 	f := freetts.New(true)
 
 	// english US text
-	err := f.Save(sampleEnglishUsText, tts.EnglishUs, "./test")
+	_, err := f.Save(sampleEnglishUsText, tts.EnglishUs, "./test")
 	assert.NoError(t, err)
 
 	// english UK text
-	err = f.Save(sampleEnglishUkText, tts.EnglishUk, "./test")
+	_, err = f.Save(sampleEnglishUkText, tts.EnglishUk, "./test")
 	assert.NoError(t, err)
 
 	// arabic text
-	err = f.Save(sampleArabicText, tts.Arabic, "./test")
+	_, err = f.Save(sampleArabicText, tts.Arabic, "./test")
 	assert.NoError(t, err)
 
 	_ = os.RemoveAll("./test")

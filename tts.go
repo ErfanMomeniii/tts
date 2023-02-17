@@ -4,7 +4,7 @@ import "github.com/ErfanMomeniii/tts/pkg/freetts"
 
 type TTS interface {
 	Play(text string, language string) error
-	Save(text string, language string, path string) error
+	Save(text string, language string, path string) (string, error)
 }
 
 // Speak generates voice from input text in the input language
@@ -25,8 +25,9 @@ func Speak(text string, language string, isMale ...bool) error {
 	return nil
 }
 
-// SaveToFile generates file of speaking in the input path
-func SaveToFile(text string, language string, path string, isMale ...bool) error {
+// SaveToFile generates file of speaking in the input path and returns
+// generation file exact name
+func SaveToFile(text string, language string, path string, isMale ...bool) (string, error) {
 	m := true
 
 	if len(isMale) > 0 {
@@ -35,9 +36,10 @@ func SaveToFile(text string, language string, path string, isMale ...bool) error
 
 	f := freetts.New(m)
 
-	if err := f.Save(text, language, path); err != nil {
-		return err
+	name, err := f.Save(text, language, path)
+	if err != nil {
+		return "", err
 	}
 
-	return nil
+	return name, nil
 }
