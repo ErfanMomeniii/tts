@@ -12,7 +12,7 @@
 
 # tts
 
-a lightweight package for converting text to speach with Go.
+a lightweight package for converting text to speech with Go.
 
 ## Documentation
 
