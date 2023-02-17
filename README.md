@@ -1,4 +1,6 @@
-![image description](./assets/photo/logo.svg)
+<p align="center">
+<img src="./assets/photo/logo.svg" width=50% height=50%>
+</p>
 <p align="center">
 <a href="https://pkg.go.dev/github.com/mehditeymorian/koi/v3?tab=doc"target="_blank">
     <img src="https://img.shields.io/badge/Go-1.19+-00ADD8?style=for-the-badge&logo=go" alt="go version" />
