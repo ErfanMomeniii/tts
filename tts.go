@@ -7,6 +7,8 @@ type TTS interface {
 	Save(text string, language string, path string) error
 }
 
+// Speak generates voice from input text in the input language
+// with chosen male or female sound
 func Speak(text string, language string, isMale ...bool) error {
 	m := true
 
@@ -23,6 +25,7 @@ func Speak(text string, language string, isMale ...bool) error {
 	return nil
 }
 
+// SaveToFile generates file of speaking in the input path
 func SaveToFile(text string, language string, path string, isMale ...bool) error {
 	m := true
 
