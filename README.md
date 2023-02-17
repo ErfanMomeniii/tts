@@ -36,7 +36,7 @@ English Uk
 Arabic
 ```
 
-:information_source: It will update for supporting all languages in the next releases.
+:warning: It will update for supporting all languages in the next releases.
 
 ## Quick Start
 
