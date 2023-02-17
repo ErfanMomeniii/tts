@@ -5,5 +5,7 @@ import (
 )
 
 func main() {
-	_ = tts.Speak("hello my name is allen", tts.EnglishUs, true)
+	_ = tts.Speak("hello my name is Erfan", tts.EnglishUs, true)
+
+	_ = tts.SaveToFile("hello my friend", tts.EnglishUs, "./example", false)
 }

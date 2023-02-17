@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 )
@@ -21,10 +22,10 @@ type FreeTts struct {
 	IsMale bool
 }
 
-func textToSpeak(text string, language string, isMale bool) ([]byte, error) {
+func textToSpeak(text string, language string, isMale bool) ([]byte, string, error) {
 	speaker, err := selectSpeaker(language, isMale)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	u := fmt.Sprintf("%s/Home/PlayAudio?Language=%s&Voice=%s&TextMessage=%s&id=%s&type=1",
@@ -32,7 +33,7 @@ func textToSpeak(text string, language string, isMale bool) ([]byte, error) {
 	fmt.Println(u)
 	resp, err := http.Get(u)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	defer func() {
@@ -47,18 +48,18 @@ func textToSpeak(text string, language string, isMale bool) ([]byte, error) {
 
 	responseBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	err = json.Unmarshal(responseBytes, &response)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	u2 := fmt.Sprintf("%s/audio/%s", Url, response.Id)
 	result, err := http.Get(u2)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer func() {
 		_ = result.Body.Close()
@@ -66,13 +67,13 @@ func textToSpeak(text string, language string, isMale bool) ([]byte, error) {
 
 	body, err := ioutil.ReadAll(result.Body)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return body, err
+	return body, response.Id, err
 }
 
 func (f *FreeTts) Play(text string, language string) error {
-	result, err := textToSpeak(text, language, f.IsMale)
+	result, _, err := textToSpeak(text, language, f.IsMale)
 	if err != nil {
 		return err
 	}
@@ -83,11 +84,10 @@ func (f *FreeTts) Play(text string, language string) error {
 		return err
 	}
 
-	samplingRate := 44100
 	numOfChannels := 2
 	audioBitDepth := 2
 
-	otoCtx, readyChan, err := oto.NewContext(samplingRate, numOfChannels, audioBitDepth)
+	otoCtx, readyChan, err := oto.NewContext(decodedMp3.SampleRate(), numOfChannels, audioBitDepth)
 	if err != nil {
 		return err
 	}
@@ -103,6 +103,21 @@ func (f *FreeTts) Play(text string, language string) error {
 
 	err = player.Close()
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (f *FreeTts) Save(text string, language string, path string) error {
+	result, id, err := textToSpeak(text, language, f.IsMale)
+	if err != nil {
+		return err
+	}
+
+	_ = os.Mkdir(path, 0777)
+
+	if err = os.WriteFile(path+"/"+id, result, 0777); err != nil {
 		return err
 	}
 
